@@ -10,6 +10,6 @@ public class IndexController {
 
     @GetMapping("/")
     public String index(){
-        return "Proyecto Demostración CI/CD";
+        return "Proyecto Demostración CI/CD - Versión: 0.0.3";
     }
 }
