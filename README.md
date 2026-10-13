@@ -46,7 +46,7 @@ flowchart LR
 
 ### Principios aplicados
 
-- `permissions: {}` en cada workflow; cada job pide solo lo que usa. `id-token: write` existe únicamente en el job que publica en tags.
+- `permissions: {}` en cada workflow; cada job pide solo lo que usa. Para firmar, `id-token: write` existe únicamente en el job que publica en tags. Scorecard también lo declara, pero solo lo usa para publicar sus resultados en la API pública de OpenSSF desde la rama por defecto.
 - Ningún valor `${{ github.event.* }}` se interpola en un `run:`; se pasa por `env:`.
 - No se usa `pull_request_target`. `actions/checkout` siempre con `persist-credentials: false`.
 - Las herramientas se instalan con versión exacta (y checksum cuando se descargan a mano).
