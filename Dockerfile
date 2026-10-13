@@ -13,11 +13,9 @@ RUN ./gradlew --no-daemon bootJar
 
 # --- Etapa 2: solo el JRE y el jar.
 FROM eclipse-temurin:21-jre-alpine-3.24@sha256:51ab5e3302e7141ce665ca3ea85e8b5cd648eafbc3c0c90dd79d6537684e4555
-# Usuario sin privilegios con UID numérico: Kubernetes solo puede validar runAsNonRoot con un UID numérico.
-RUN addgroup -S -g 10001 app && adduser -S -D -H -u 10001 -G app app
 WORKDIR /app
-COPY --from=build --chown=10001:10001 /src/build/libs/springboot-ci-*.jar /app/springboot-ci.jar
-USER 10001:10001
+COPY --from=build /src/build/libs/springboot-ci-*.jar /app/springboot-ci.jar
+# DEMO: sin instrucción USER, el contenedor corre como root.
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
   CMD ["wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/actuator/health"]
