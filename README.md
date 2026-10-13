@@ -79,9 +79,9 @@ herramientas basadas en expresiones regulares y se discute en el laboratorio 3.
 | Rama | Cambio inseguro | Gate que lo bloquea |
 | --- | --- | --- |
 | `demo/secreto` | API key ficticia en `application.properties` | `secretos.yml` (gitleaks) |
-| `demo/dependencia-vulnerable` | `jackson-databind:2.12.7.1` (la versión del baseline; tiene avisos HIGH vigentes, p. ej. GHSA-wv8q-qhhj-9h54) | `dependencias.yml` (Dependency Review) e `imagen.yml` (Trivy) |
+| `demo/dependencia-vulnerable` | `commons-text:1.9` (Text4Shell, CVE-2022-42889, crítica) | `dependencias.yml` (Dependency Review) e `imagen.yml` (Trivy) |
 | `demo/imagen-root` | Se elimina `USER` del Dockerfile | `imagen.yml` (`trivy config`, DS002) |
-| `demo/pwn-request` | Workflow con `pull_request_target`, checkout del PR e interpolación del título | `auditoria-workflows.yml` (zizmor) |
+| `demo/pwn-request` | Workflow con `pull_request_target`, checkout del PR e interpolación del título | `auditoria-workflows.yml` (zizmor); también CodeQL `actions` y la alerta *Dangerous-Workflow* de Scorecard |
 
 ## Verificar la imagen publicada
 
