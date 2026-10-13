@@ -1,0 +1,31 @@
+# DEMO VULNERABLE — NO COPIAR. Reproduce el patrón "pwn request" explotado por hackerbot-claw (feb-2026).
+# 1. pull_request_target corre con el token del repositorio base y con acceso a secretos.
+# 2. Hace checkout del código del PR (no confiable) y lo ejecuta con ./gradlew.
+# 3. Interpola el título del PR directamente en un script de shell (inyección de comandos).
+# El gate auditoria-workflows.yml (zizmor) debe bloquear este PR.
+# Desde dic-2025 GitHub ejecuta pull_request_target solo con la definición de la rama por defecto,
+# por lo que este archivo, en una rama demo, nunca llega a ejecutarse.
+name: Bienvenida a PRs
+
+on:
+  pull_request_target:
+    types: [opened, synchronize]
+
+permissions: write-all
+
+jobs:
+  saludar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Saludo
+        run: |
+          echo "Gracias por tu contribución: ${{ github.event.pull_request.title }}"
+
+      - name: Compilar el PR
+        run: ./gradlew build
+        env:
+          TOKEN_DESPLIEGUE: ${{ secrets.TOKEN_DESPLIEGUE_FICTICIO }}
