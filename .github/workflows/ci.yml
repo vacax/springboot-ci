@@ -1,0 +1,49 @@
+# Gate 1 — Compilación y pruebas unitarias.
+name: CI
+
+on:
+  push:
+    branches: [master, devsecops-referencia]
+  pull_request:
+
+# Mínimo privilegio: el workflow no concede nada; cada job pide solo lo que usa.
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: Build y pruebas (JDK 21)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Configurar JDK 21
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      # Además del caché, setup-gradle valida el checksum del gradle-wrapper.jar.
+      - name: Configurar Gradle
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+
+      - name: Compilar y probar
+        run: ./gradlew build --no-daemon
+
+      - name: Publicar reporte JUnit
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: reporte-junit
+          path: |
+            build/reports/tests/test
+            build/test-results/test
+          retention-days: 14
