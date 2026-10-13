@@ -1,11 +1,11 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.5.3'
+    id 'org.springframework.boot' version '4.1.1'
     id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = 'edu.pucmm.eict'
-version = '0.0.1-SNAPSHOT'
+version = '1.0.0'
 
 java {
     toolchain {
@@ -13,17 +13,29 @@ java {
     }
 }
 
+// Parches de seguridad sobre el BOM de Spring Boot 4.1.1 mientras sale el siguiente parche de Boot.
+// Revisar y eliminar al subir de versión de Spring Boot (Dependabot avisará).
+ext['tomcat.version'] = '11.0.26'      // CVE-2026-65182, CVE-2026-65905, CVE-2026-68525
+ext['jackson-bom.version'] = '3.1.7'   // CVE-2026-89407, CVE-2026-89425, CVE-2026-68497, CVE-2026-91776, CVE-2026-91777
+
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    // Actuator expone /actuator/health, usado por el HEALTHCHECK del contenedor y por Kubernetes.
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.7.1' //2.12.7.1
+    // Las versiones las administra el BOM de Spring Boot: no se fijan librerías transitivas a mano.
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+// Solo se produce el jar ejecutable (bootJar); el jar "plain" no se usa y confunde al Dockerfile.
+tasks.named('jar') {
+    enabled = false
 }
