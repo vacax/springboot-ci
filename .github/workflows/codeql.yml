@@ -1,0 +1,59 @@
+# Gate 3 — SAST con CodeQL (Java). Falla si hay alertas de severidad de seguridad alta o crítica (>= 7.0).
+name: CodeQL
+
+on:
+  push:
+    branches: [master, devsecops-referencia]
+  pull_request:
+  schedule:
+    - cron: '23 5 * * 1'
+
+permissions: {}
+
+jobs:
+  analizar:
+    name: Analizar (java-kotlin)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      security-events: write   # subir resultados SARIF a Code scanning
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Inicializar CodeQL
+        uses: github/codeql-action/init@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        with:
+          languages: java-kotlin
+          build-mode: none
+          queries: security-extended
+
+      - name: Analizar
+        uses: github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        with:
+          category: /language:java-kotlin
+          output: sarif-results
+
+      # CodeQL publica las alertas pero no hace fallar el job: este paso convierte el hallazgo en gate.
+      - name: Gate de severidad (alta o crítica)
+        run: |
+          python3 - <<'PY'
+          import json, glob, sys
+          altas = []
+          for f in glob.glob("sarif-results/*.sarif"):
+              for run in json.load(open(f))["runs"]:
+                  reglas = {r["id"]: r for r in run["tool"]["driver"].get("rules", [])}
+                  for ext in run["tool"].get("extensions", []):
+                      reglas.update({r["id"]: r for r in ext.get("rules", [])})
+                  for res in run.get("results", []):
+                      sev = float(reglas.get(res["ruleId"], {}).get("properties", {}).get("security-severity", 0) or 0)
+                      if sev >= 7.0:
+                          loc = res["locations"][0]["physicalLocation"]
+                          altas.append(f'{res["ruleId"]} ({sev}) {loc["artifactLocation"]["uri"]}:{loc.get("region", {}).get("startLine", "?")}')
+          for a in altas:
+              print(f"::error::{a}")
+          print(f"Alertas de severidad alta/crítica: {len(altas)}")
+          sys.exit(1 if altas else 0)
+          PY
