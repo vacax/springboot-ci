@@ -1,4 +1,4 @@
-# Gate 3 — SAST con CodeQL (Java). Falla si hay alertas de severidad de seguridad alta o crítica (>= 7.0).
+# Gate 3 — SAST con CodeQL (Java y los propios workflows de GitHub Actions). Falla si hay alertas de severidad de seguridad alta o crítica (>= 7.0).
 name: CodeQL
 
 on:
@@ -12,8 +12,12 @@ permissions: {}
 
 jobs:
   analizar:
-    name: Analizar (java-kotlin)
+    name: Analizar (${{ matrix.lenguaje }})
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        lenguaje: [java-kotlin, actions]
     permissions:
       contents: read
       security-events: write   # subir resultados SARIF a Code scanning
@@ -26,14 +30,14 @@ jobs:
       - name: Inicializar CodeQL
         uses: github/codeql-action/init@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
         with:
-          languages: java-kotlin
+          languages: ${{ matrix.lenguaje }}
           build-mode: none
           queries: security-extended
 
       - name: Analizar
         uses: github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
         with:
-          category: /language:java-kotlin
+          category: /language:${{ matrix.lenguaje }}
           output: sarif-results
 
       # CodeQL publica las alertas pero no hace fallar el job: este paso convierte el hallazgo en gate.

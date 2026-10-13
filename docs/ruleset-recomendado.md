@@ -20,7 +20,7 @@ Checks requeridos (nombre del job tal como aparece en el PR):
 
 - `Build y pruebas (JDK 21)`
 - `gitleaks`
-- `Analizar (java-kotlin)`
+- `Analizar (java-kotlin)` y `Analizar (actions)`
 - `Revisión de dependencias`
 - `Build, escaneo y SBOM`
 - `ZAP baseline`
@@ -52,6 +52,7 @@ Guarda este JSON como `ruleset.json` y ejecuta
           { "context": "Build y pruebas (JDK 21)" },
           { "context": "gitleaks" },
           { "context": "Analizar (java-kotlin)" },
+          { "context": "Analizar (actions)" },
           { "context": "Revisión de dependencias" },
           { "context": "Build, escaneo y SBOM" },
           { "context": "ZAP baseline" } ] } },

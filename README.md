@@ -35,7 +35,7 @@ flowchart LR
 | --- | --- | --- | --- |
 | Build y pruebas | `ci.yml` | Gradle + JUnit 5 | Pruebas en rojo |
 | Secretos | `secretos.yml` | gitleaks 8.30.1 (binario verificado) | Cualquier secreto en los commits del PR; en push/schedule, en todo el historial |
-| SAST | `codeql.yml` | CodeQL `security-extended` | Alertas con *security-severity* ≥ 7.0 |
+| SAST | `codeql.yml` | CodeQL `security-extended` (Java y workflows de Actions) | Alertas con *security-severity* ≥ 7.0 |
 | SCA | `dependencias.yml` | Dependency submission (Gradle) + Dependency Review | Dependencias nuevas con CVE de severidad alta o crítica |
 | Contenedor | `imagen.yml` | Trivy 0.74.0 | Misconfiguración HIGH/CRITICAL del Dockerfile (p. ej. usuario root) o CVE HIGH/CRITICAL con parche disponible |
 | SBOM | `imagen.yml` | Trivy (CycloneDX y SPDX) | — (artefacto `sbom`) |
