@@ -1,0 +1,32 @@
+# Dependabot lee esta configuración SOLO desde la rama por defecto del repositorio.
+# En la rama devsecops-referencia es una plantilla: se activa cuando llega a la rama por defecto (p. ej. en tu fork).
+version: 2
+updates:
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+    # Coherente con la política del curso: no adoptar versiones con menos de 14 días publicadas.
+    cooldown:
+      default-days: 14
+    groups:
+      spring-boot:
+        patterns: ['org.springframework.boot*']
+
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 14
+
+  # Mantiene al día los SHA de las actions (y el comentario con la versión).
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 14
+    groups:
+      actions:
+        patterns: ['*']

@@ -1,0 +1,24 @@
+# Todo cambio requiere revisión del responsable (activar "Require review from Code Owners" en el ruleset).
+*                               @vacax
+
+# El pipeline es superficie de ataque: workflows, Dependabot y este archivo.
+/.github/                       @vacax
+
+# Construcción y cadena de suministro.
+/Dockerfile                     @vacax
+/.dockerignore                  @vacax
+/build.gradle                   @vacax
+/settings.gradle                @vacax
+/gradle/                        @vacax
+/gradlew                        @vacax
+/gradlew.bat                    @vacax
+/.zap/                          @vacax
+
+# Archivos de instrucciones para agentes de IA: son código y se revisan como código.
+CLAUDE.md                       @vacax
+AGENTS.md                       @vacax
+GEMINI.md                       @vacax
+.cursorrules                    @vacax
+/.cursor/                       @vacax
+/.claude/                       @vacax
+/.github/copilot-instructions.md @vacax
