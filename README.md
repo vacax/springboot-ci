@@ -59,7 +59,7 @@ flowchart LR
 | Antes | Después | Motivo |
 | --- | --- | --- |
 | Clave "AWS" en `SpringbootCiApplication.java` | Eliminada | Secretos fuera del código. Sigue en el historial (ver nota) |
-| `jackson-databind` fijado a mano | Lo gestiona el BOM de Spring Boot; parches puntuales documentados en `build.gradle` | Las versiones fijadas a mano se quedan atrás |
+| `jackson-databind` fijado a mano | Lo gestiona el BOM de Spring Boot; parches puntuales documentados en `build.gradle` | Las versiones fijadas a mano se quedan atrás. Además, `jackson-databind:2.12.7.1` (el PR de Dependabot fusionado) es incompatible con Spring Boot 3.5.3: en `v0-baseline` la aplicación no arranca (`ClassNotFoundException` de `ToEmptyObjectSerializer`) |
 | Spring Boot 3.5.3 | 4.1.1 | La rama 3.5 ya no recibe parches OSS |
 | Imagen como root | `USER 10001` (UID numérico) | Kubernetes solo valida `runAsNonRoot` con UID numérico |
 | Sin `HEALTHCHECK` | `HEALTHCHECK` contra `/actuator/health` | Orquestador y Compose detectan fallos |
