@@ -1,18 +1,25 @@
-# Probando el concepto de Multi-stage.
-# Instalando Gradle para compilar al aplicación y luego lo necesario a una imagen completa.
-FROM gradle:8.14-jdk21-noble AS build
-COPY --chown=gradle:gradle . /home/gradle/src
-WORKDIR /home/gradle/src
-RUN gradle bootjar --no-daemon
+# syntax=docker/dockerfile:1
+# Construcción multi-etapa. Las imágenes base se fijan por digest: el tag es solo informativo
+# y Dependabot (ecosistema docker) propone el digest nuevo cuando la imagen se reconstruye.
 
-# Utilizando uan imagen con lo necesario para arrancar la aplicación.
-# en Java las imagenes slim son las mas pequeñas en ese tipo.
-FROM eclipse-temurin:21-jre-alpine
-# Indicando el puerto para exponer, debo pasar el flag -p para habilitarlo o -P para publicarlos todos.
-# No es necesario exponer ningun puerto, la propia instancia se reportará a Eureka.
+# --- Etapa 1: compilar con el Gradle Wrapper (versión y checksum fijados en gradle-wrapper.properties).
+FROM eclipse-temurin:21-jdk-alpine-3.24@sha256:0bfc69a4758a86710e5c474032d28400a8bd00874766f9e8b1642ac2fd293159 AS build
+WORKDIR /src
+COPY gradlew settings.gradle build.gradle ./
+COPY gradle ./gradle
+RUN ./gradlew --no-daemon dependencies > /dev/null
+COPY src ./src
+RUN ./gradlew --no-daemon bootJar
+
+# --- Etapa 2: solo el JRE y el jar.
+FROM eclipse-temurin:21-jre-alpine-3.24@sha256:51ab5e3302e7141ce665ca3ea85e8b5cd648eafbc3c0c90dd79d6537684e4555
+# Usuario sin privilegios con UID numérico: Kubernetes solo puede validar runAsNonRoot con un UID numérico.
+RUN addgroup -S -g 10001 app && adduser -S -D -H -u 10001 -G app app
+WORKDIR /app
+COPY --from=build --chown=10001:10001 /src/build/libs/springboot-ci-*.jar /app/springboot-ci.jar
+USER 10001:10001
 EXPOSE 8080
-# creando la carpeta para el proyecto
-RUN mkdir /app
-# desde la otra instancia estaremos copiando lo necesario
-COPY --from=build /home/gradle/src/build/libs/*.jar /app/springboot-ci.jar
-ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom","-jar","/app/springboot-ci.jar"]
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+  CMD ["wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/actuator/health"]
+# Sin -Djava.security.egd: en JDK modernos SecureRandom ya usa /dev/urandom sin bloquear.
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-jar", "/app/springboot-ci.jar"]

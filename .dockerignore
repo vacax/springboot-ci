@@ -1,0 +1,8 @@
+# El contexto de build no debe llevar el historial git (puede contener secretos) ni artefactos locales.
+.git
+.github
+.gradle
+build
+*.md
+.idea
+*.iml
