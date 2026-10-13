@@ -1,0 +1,44 @@
+# Gate 6 — DAST. Levanta la imagen construida desde el PR y corre ZAP baseline (escaneo pasivo).
+# Falla con cualquier alerta WARN o FAIL que no esté justificada en .zap/rules.tsv.
+name: DAST
+
+on:
+  pull_request:
+  push:
+    branches: [master, devsecops-referencia]
+
+permissions: {}
+
+jobs:
+  zap-baseline:
+    name: ZAP baseline
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Construir y levantar la aplicación
+        run: |
+          docker build -t springboot-ci:dast .
+          docker run -d --name app -p 8080:8080 springboot-ci:dast
+          for _ in $(seq 1 30); do
+            if curl -fsS http://localhost:8080/actuator/health > /dev/null; then echo "Aplicación lista"; exit 0; fi
+            sleep 2
+          done
+          docker logs app
+          exit 1
+
+      - name: ZAP baseline
+        uses: zaproxy/action-baseline@de8ad967d3548d44ef623df22cf95c3b0baf8b25 # v0.15.0
+        with:
+          target: http://localhost:8080/
+          # Imagen de ZAP 2.17.0 fijada por digest (el action usa :stable por defecto).
+          docker_name: ghcr.io/zaproxy/zaproxy@sha256:7aaa659b0d43078febd82e29bad112285c370727e86ab8340444220e17d9f0d2
+          rules_file_name: .zap/rules.tsv
+          fail_action: true
+          allow_issue_writing: false
+          artifact_name: reporte-zap
